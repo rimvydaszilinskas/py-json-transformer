@@ -42,6 +42,7 @@ class Transformation:
             except (KeyError, TypeError):
                 if skip_empty_iterations:
                     return None
+
         return list(get(key, i) for i in iterable)
 
     @classmethod

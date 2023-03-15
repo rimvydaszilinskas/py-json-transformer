@@ -1,5 +1,6 @@
-from json_transformer import transform_json
 import unittest
+
+from json_transformer import transform_json
 
 
 class TestSomething(unittest.TestCase):
@@ -96,7 +97,8 @@ class TestSomething(unittest.TestCase):
         expected = {
             "type": "employees",
             "names": [
-                "Rimvydas", "John",
+                "Rimvydas",
+                "John",
             ],
             "positions": [
                 "Software Engineer",
