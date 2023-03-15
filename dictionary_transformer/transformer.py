@@ -1,7 +1,9 @@
 import re
 from copy import deepcopy
 
-skip_empty_iterations = False
+from dictionary_transformer.exceptions import TransformerException
+
+ignore_non_existent_keys = True
 
 
 class Undefined:
@@ -21,11 +23,12 @@ class Transformation:
         if not isinstance(key, str):
             self.__value = key
             return
-        values = key.split(".")
-        if values[0] != self.SPECIAL_SYMBOL_SOURCE:
+
+        if not is_value_a_mapping(key):
             self.__value = key
-            return
-        self.__keys = values[1:]
+        else:
+            values = key.split(".")
+            self.__keys = values[1:]
 
     @staticmethod
     def __is_key_index(key):
@@ -40,7 +43,7 @@ class Transformation:
             try:
                 return obj[k]
             except (KeyError, TypeError):
-                if skip_empty_iterations:
+                if ignore_non_existent_keys:
                     return None
 
         return list(get(key, i) for i in iterable)
@@ -49,12 +52,22 @@ class Transformation:
     def __get_value_by_key(cls, key: str, value):
         idx = cls.__is_key_index(key)
         if idx is not None:
-            return value[idx]
+            try:
+                return value[idx]
+            except IndexError as e:
+                if ignore_non_existent_keys:
+                    return None
+                raise TransformerException(f"Invalid index provided", index=idx) from e
         if key == cls.SPECIAL_SYMBOL_ALL:
             return value
         if isinstance(value, (list, tuple, set)):
             return cls.__get_keys_from_iterable(key, value)
-        return value[key]
+        try:
+            return value[key]
+        except KeyError as e:
+            if ignore_non_existent_keys:
+                return None
+            raise TransformerException(f"Invalid key provided", key=key) from e
 
     def get_value(self, source: dict):
         if not isinstance(self.__value, Undefined):

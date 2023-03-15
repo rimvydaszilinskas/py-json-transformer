@@ -1,6 +1,11 @@
 import unittest
 
-from dictionary_transformer import transform_json
+import dictionary_transformer.transformer
+from dictionary_transformer import (
+    TransformerException,
+    is_value_a_mapping,
+    transform_json,
+)
 
 
 class TestSomething(unittest.TestCase):
@@ -106,3 +111,28 @@ class TestSomething(unittest.TestCase):
             ],
         }
         self.assertEqual(expected, result)
+
+    def test_invalid_key(self):
+        data = {"name": "Rim"}
+        mapping = {"firstName": "$.first_name"}
+        result = transform_json(data, mapping)
+        expected = {
+            "firstName": None,
+        }
+        dictionary_transformer.transformer.ignore_non_existent_keys = False
+        self.assertEqual(expected, result)
+
+        self.assertRaises(TransformerException, transform_json, data, mapping)
+
+    def test_value_mappings(self):
+        tests = (
+            ("not.mapping", False),
+            ("$.mapping.[*].name", True),
+        )
+
+        for test_string, result in tests:
+            self.assertEqual(
+                result,
+                is_value_a_mapping(test_string),
+                f"{test_string} should be {result}",
+            )
