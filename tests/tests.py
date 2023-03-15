@@ -1,6 +1,6 @@
 import unittest
 
-from json_transformer import transform_json
+from dictionary_transformer import transform_json
 
 
 class TestSomething(unittest.TestCase):
